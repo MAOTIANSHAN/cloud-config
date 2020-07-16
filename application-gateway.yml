@@ -1,0 +1,78 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" #["hystrix.stream"]
+  endpoint:
+    health:
+      #     要想查看详细的应用健康信息需要配置management.endpoint.health.show-details 的值为always
+      #     management.endpoint.health.show-details的值除了always之外还有when-authorized、never，默认值是never。
+      #     System.setProperty("management.endpoint.health.show-details","always");
+      show-details: always
+      
+---
+
+spring:
+  profiles: gateway
+  application:
+    name: yaduomi-gateway
+
+server:
+  port: 2001
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 5
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://admin:admin@localhost:1001/eureka #单机版：
+      #defaultZone: http://localhost:1001/eureka/,http://127.0.0.1:1002/eureka/
+  instance:
+    #显示的服务名称
+    instance-id: ${spring.application.name}-${server.port}
+    #显示服务IP
+    prefer-ip-address: true
+
+info:
+  app.name: ${eureka.instance.instance-id}
+  company.name: www.xxx.com
+
+---
+
+spring:
+  profiles: zuul
+  application:
+    name:yaduomi-gateway
+
+server:
+  port: 2002
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 5
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://admin:admin@localhost:1001/eureka #单机版：
+      #defaultZone: http://localhost:1001/eureka/,http://127.0.0.1:1002/eureka/
+  instance:
+    #显示的服务名称
+    instance-id: ${spring.application.name}-${server.port}
+    #显示服务IP
+    prefer-ip-address: true
+
+info:
+  app.name: ${eureka.instance.instance-id}
+  company.name: www.xxx.com
+
+#路由访问映射
+#访问路径：http://127.0.0.1:2001/ydm/provider/service/discoveryClient
+zuul:
+  routes:
+    yaduomi.service-id: yaduomi-rest-provider
+    yaduomi.path: /provider/**
+  #禁止微服务的真实路径*为所有微服务，也可为真实微服务名称yaduomi-rest-provider
+  ignored-services: "*"
+  #公共地址前缀
+  prefix: /ydm
